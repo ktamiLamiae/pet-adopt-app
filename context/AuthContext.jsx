@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChange } from '../services/authService';
+import Shared from '../shared/Shared';
 
 const AuthContext = createContext({});
 
@@ -13,12 +14,18 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [favList, setFavList] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Subscribe to auth state changes
-        const unsubscribe = onAuthStateChange((user) => {
-            setUser(user);
+        const unsubscribe = onAuthStateChange((currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                fetchFavorites(currentUser);
+            } else {
+                setFavList([]);
+            }
             setLoading(false);
         });
 
@@ -26,10 +33,18 @@ export const AuthProvider = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
+    const fetchFavorites = async (currentUser) => {
+        const result = await Shared.GetFavList(currentUser);
+        setFavList(result?.favorites ? result.favorites : []);
+    }
+
     const value = {
         user,
+        favList,
+        setFavList,
         loading,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
+        refreshFavorites: () => user && fetchFavorites(user)
     };
 
     return (

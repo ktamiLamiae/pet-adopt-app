@@ -15,7 +15,7 @@ export default function RootLayout() {
     <AuthProvider>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="Auth/login/index"
           options={{
             headerShown: false
@@ -27,6 +27,11 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen name="Welcome/index"
+          options={{
+            headerShown: false
+          }}
+        />
+        <Stack.Screen name="pet-details/index"
           options={{
             headerShown: false
           }}

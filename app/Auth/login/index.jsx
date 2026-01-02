@@ -56,6 +56,7 @@ export default function Login() {
                         <Ionicons name="mail-outline" size={20} color={Colors.GRAY} style={styles.icon} />
                         <TextInput
                             placeholder='Enter your email'
+                            placeholderTextColor={Colors.GRAY}
                             style={styles.input}
                             value={email}
                             onChangeText={setEmail}
@@ -72,6 +73,7 @@ export default function Login() {
                         <Ionicons name="lock-closed-outline" size={20} color={Colors.GRAY} style={styles.icon} />
                         <TextInput
                             placeholder='Enter your password'
+                            placeholderTextColor={Colors.GRAY}
                             secureTextEntry={true}
                             style={styles.input}
                             value={password}

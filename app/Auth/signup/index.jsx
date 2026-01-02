@@ -60,6 +60,7 @@ export default function Signup() {
                         <Ionicons name="person-outline" size={20} color={Colors.GRAY} style={styles.icon} />
                         <TextInput
                             placeholder='Enter your full name'
+                            placeholderTextColor={Colors.GRAY}
                             style={styles.input}
                             value={fullName}
                             onChangeText={setFullName}
@@ -74,6 +75,7 @@ export default function Signup() {
                         <Ionicons name="mail-outline" size={20} color={Colors.GRAY} style={styles.icon} />
                         <TextInput
                             placeholder='Enter your email'
+                            placeholderTextColor={Colors.GRAY}
                             style={styles.input}
                             value={email}
                             onChangeText={setEmail}
@@ -90,6 +92,7 @@ export default function Signup() {
                         <Ionicons name="lock-closed-outline" size={20} color={Colors.GRAY} style={styles.icon} />
                         <TextInput
                             placeholder='Enter your password (min 6 characters)'
+                            placeholderTextColor={Colors.GRAY}
                             secureTextEntry={true}
                             style={styles.input}
                             value={password}

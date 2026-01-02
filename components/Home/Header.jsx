@@ -58,13 +58,13 @@ export default function Header() {
     );
 }
 
-/* ================== STYLES ================== */
 
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingTop: 20,
     },
     welcome: {
         fontFamily: 'outfit',

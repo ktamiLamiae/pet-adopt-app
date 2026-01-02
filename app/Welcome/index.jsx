@@ -19,7 +19,7 @@ const WelcomeScreen = () => {
                     Let's adopt the pet which you like and make there life happy again
                 </Text>
 
-                <Pressable style={styles.button} onPress={() => router.push('/Auth/signup')}>
+                <Pressable style={styles.button} onPress={() => router.push('/Auth/login')}>
                     <Text style={styles.buttonText}>
                         Get Started
                     </Text>
