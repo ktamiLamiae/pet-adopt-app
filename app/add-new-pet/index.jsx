@@ -109,17 +109,23 @@ export default function AddNewPet() {
 
     const SaveFormData = async (imageUrl) => {
         const docId = Date.now().toString();
+        const userData = {
+            name: user?.displayName || user?.email.split('@')[0],
+            email: user?.email,
+            imageUrl: user?.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+        };
+
         await setDoc(doc(db, 'Pets', docId), {
             ...formData,
             imageUrl: imageUrl,
-            username: user?.displayName || user?.email.split('@')[0],
-            email: user?.email,
-            userImage: user?.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+            user: userData,
             id: docId
         });
+
         setLoader(false);
         router.replace('/(tabs)/home');
     }
+
 
     const renderPickerModal = (visible, setVisible, data, onSelect, title) => (
         <Modal

@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 
@@ -17,9 +18,8 @@ export default function Header() {
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
             '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
         ];
-        const initial = getInitial();
-        const index = initial.charCodeAt(0) % colors.length;
-        return colors[index];
+        const randomIndex = Math.floor(Math.random() * colors.length);
+        return colors[randomIndex];
     };
 
     const renderAvatar = () => {
@@ -53,7 +53,9 @@ export default function Header() {
                 </Text>
             </View>
 
-            {renderAvatar()}
+            <Link href="(tabs)/profile">
+                {renderAvatar()}
+            </Link>
         </View>
     );
 }

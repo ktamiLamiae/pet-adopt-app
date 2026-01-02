@@ -6,10 +6,16 @@ export default function OwnerInfo({ pet }) {
     return (
         <View style={styles.container}>
             <View style={styles.userContainer}>
-                <Image
-                    source={{ uri: pet?.user?.imageUrl }}
-                    style={styles.userImage}
-                />
+                {pet?.user?.imageUrl ? (
+                    <Image
+                        source={{ uri: pet.user.imageUrl }}
+                        style={styles.userImage}
+                    />
+                ) : (
+                    <View style={[styles.userPlaceholder, { backgroundColor: Colors.LIGHT_PRIMARY }]}>
+                        <Ionicons name="person" size={24} color={Colors.PRIMARY} />
+                    </View>
+                )}
                 <View>
                     <Text style={styles.userName}>{pet?.user?.name}</Text>
                     <Text style={styles.userRole}>Pet Owner</Text>
@@ -52,5 +58,20 @@ const styles = StyleSheet.create({
     userRole: {
         fontFamily: 'outfit',
         color: Colors.GRAY
-    }
+    },
+    userPlaceholder: {
+        width: 50,
+        height: 50,
+        borderRadius: 99,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    iconContainer: {
+        width: 45,
+        height: 45,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
