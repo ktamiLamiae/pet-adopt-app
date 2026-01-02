@@ -27,7 +27,6 @@ export default function Favourite() {
 
         setLoader(true);
         try {
-            // Firestore 'in' query supports up to 30 items
             const q = query(
                 collection(db, 'Pets'),
                 where('id', 'in', favList.map(id => Number(id)))
@@ -50,12 +49,13 @@ export default function Favourite() {
     return (
         <View style={{
             padding: 20,
-            marginTop: 20,
+            marginTop: 40,
             flex: 1
         }}>
             <Text style={{
                 fontFamily: 'outfit-medium',
-                fontSize: 30
+                fontSize: 30,
+                marginBottom: 20
             }}>Favourites</Text>
 
             <FlatList

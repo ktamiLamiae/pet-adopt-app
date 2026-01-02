@@ -36,7 +36,6 @@ const styles = StyleSheet.create({
     newPost: {
         display: 'flex',
         flexDirection: 'row',
-        gap: 5,
         alignItems: 'center',
         padding: 10,
         marginTop: 5,

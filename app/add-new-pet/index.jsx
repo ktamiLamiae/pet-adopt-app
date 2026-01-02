@@ -1,11 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRouter } from 'expo-router';
 import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
-import { db, storage } from './../../config/FirebaseConfig';
+import { db } from './../../config/FirebaseConfig';
 import Colors from './../../constants/Colors';
 
 export default function AddNewPet() {
@@ -20,6 +19,7 @@ export default function AddNewPet() {
     const [categoryList, setCategoryList] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('Cats');
     const [image, setImage] = useState();
+    const [base64Image, setBase64Image] = useState();
     const [loader, setLoader] = useState(false);
 
     // Modal state
@@ -48,11 +48,13 @@ export default function AddNewPet() {
             mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 1,
+            quality: 0.1, // Set quality to 0.1 to keep Base64 size under 1MB
+            base64: true
         });
 
         if (!result.canceled) {
             setImage(result.assets[0].uri);
+            setBase64Image("data:image/jpeg;base64," + result.assets[0].base64);
         }
     }
 
@@ -72,19 +74,37 @@ export default function AddNewPet() {
     }
 
     const UploadImage = async () => {
-        setLoader(true);
-        const response = await fetch(image);
-        const blob = await response.blob();
-        const storageRef = ref(storage, 'pet-adopt/' + Date.now() + '.jpg');
+        if (!user) {
+            ToastAndroid.show('Please sign in to upload images', ToastAndroid.SHORT);
+            return;
+        }
 
-        uploadBytes(storageRef, blob).then((snapshot) => {
-            console.log('File uploaded');
-        }).then(resp => {
-            getDownloadURL(storageRef).then(async (downloadUrl) => {
-                console.log(downloadUrl);
-                SaveFormData(downloadUrl);
-            })
-        })
+        setLoader(true);
+        try {
+            if (!base64Image) {
+                throw new Error("No image data found. Please pick the image again.");
+            }
+
+            // Bypass Firebase Storage completely by saving Base64 directly to Firestore
+            await SaveFormData(base64Image);
+
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Pet added successfully!', ToastAndroid.SHORT);
+            }
+        } catch (error) {
+            setLoader(false);
+            console.error('Error saving pet:', error);
+
+            const message = error.message?.includes('too large')
+                ? 'Image too large. Try a different one.'
+                : 'Failed to add pet. Please try again.';
+
+            if (Platform.OS === 'android') {
+                ToastAndroid.show(message, ToastAndroid.LONG);
+            } else {
+                alert(message);
+            }
+        }
     }
 
     const SaveFormData = async (imageUrl) => {

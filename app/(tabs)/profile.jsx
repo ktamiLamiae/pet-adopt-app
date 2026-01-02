@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
 import { signOutUser } from '../../services/authService';
@@ -34,27 +34,87 @@ export default function Profile() {
         );
     };
 
+    const Menu = [
+        {
+            id: 1,
+            name: 'Add New Pet',
+            icon: 'add-circle',
+            path: '/add-new-pet'
+        },
+        {
+            id: 5,
+            name: 'My Post',
+            icon: 'bookmark',
+            path: '/user-post'
+        },
+        {
+            id: 2,
+            name: 'Favorites',
+            icon: 'heart',
+            path: '/(tabs)/favourite'
+        },
+        {
+            id: 3,
+            name: 'Inbox',
+            icon: 'chatbubble',
+            path: '/(tabs)/inbox'
+        },
+        {
+            id: 4,
+            name: 'Logout',
+            icon: 'exit',
+            path: 'logout'
+        }
+    ];
+
+    const onPressMenu = (item) => {
+        if (item.path === 'logout') {
+            handleLogout();
+            return;
+        }
+        router.push(item.path);
+    };
+
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Profile</Text>
-            </View>
+            <FlatList
+                data={Menu}
+                keyExtractor={(item) => item.id.toString()}
+                ListHeaderComponent={
+                    <View>
+                        <View style={styles.header}>
+                            <Text style={styles.title}>Profile</Text>
+                        </View>
 
-            <View style={styles.profileCard}>
-                <View style={styles.avatarContainer}>
-                    <Ionicons name="person-circle" size={100} color={Colors.PRIMARY} />
-                </View>
+                        <View style={styles.profileCard}>
+                            <View style={styles.avatarContainer}>
+                                {user?.photoURL ? (
+                                    <Image source={{ uri: user.photoURL }} style={styles.avatar} />
+                                ) : (
+                                    <Ionicons name="person-circle" size={80} color={Colors.PRIMARY} />
+                                )}
+                            </View>
 
-                <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{user?.displayName || 'User'}</Text>
-                    <Text style={styles.userEmail}>{user?.email || 'No email'}</Text>
-                </View>
-            </View>
-
-            <Pressable style={styles.logoutButton} onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={24} color="white" />
-                <Text style={styles.logoutText}>Logout</Text>
-            </Pressable>
+                            <View style={styles.userInfo}>
+                                <Text style={styles.userName}>{user?.displayName || 'User'}</Text>
+                                <Text style={styles.userEmail}>{user?.email || 'No email'}</Text>
+                            </View>
+                        </View>
+                    </View>
+                }
+                renderItem={({ item }) => (
+                    <Pressable
+                        style={styles.menuItem}
+                        onPress={() => onPressMenu(item)}
+                    >
+                        <View style={[styles.iconContainer, { backgroundColor: Colors.LIGHT_PRIMARY || '#FFF9EB' }]}>
+                            <Ionicons name={item.icon} size={24} color={Colors.PRIMARY} />
+                        </View>
+                        <Text style={styles.menuText}>{item.name}</Text>
+                    </Pressable>
+                )}
+                contentContainerStyle={{ paddingBottom: 20 }}
+            />
         </View>
     );
 }
@@ -67,6 +127,7 @@ const styles = StyleSheet.create({
     header: {
         padding: 20,
         paddingTop: 60,
+        paddingBottom: 40,
         backgroundColor: Colors.PRIMARY,
     },
     title: {
@@ -90,6 +151,11 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
+    avatar: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+    },
     avatarContainer: {
         marginBottom: 15,
     },
@@ -107,6 +173,33 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: Colors.GRAY,
     },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 15,
+        marginHorizontal: 20,
+        marginTop: 15,
+        backgroundColor: Colors.WHITE,
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    iconContainer: {
+        width: 45,
+        height: 45,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    menuText: {
+        fontFamily: 'outfit-medium',
+        fontSize: 18,
+        color: Colors.BLACK,
+        marginLeft: 20,
+    },
     section: {
         marginTop: 30,
         paddingHorizontal: 20,
@@ -116,22 +209,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: Colors.BLACK,
         marginBottom: 15,
-    },
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 15,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 10,
-        marginBottom: 10,
-    },
-    menuText: {
-        flex: 1,
-        fontFamily: 'outfit',
-        fontSize: 16,
-        color: Colors.BLACK,
-        marginLeft: 15,
     },
     logoutButton: {
         flexDirection: 'row',
