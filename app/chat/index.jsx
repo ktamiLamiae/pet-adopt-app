@@ -43,7 +43,7 @@ export default function ChatScreen() {
                 const otherUser = result.users?.find(u => u.email !== currentUserEmail);
 
                 navigation.setOptions({
-                    headerTitle: otherUser?.name || 'Chat',
+                    headerTitle: otherUser?.name || 'Unknown User',
                     headerShown: true,
                     headerTransparent: false,
                     headerStyle: { backgroundColor: Colors.PRIMARY },
@@ -52,6 +52,9 @@ export default function ChatScreen() {
             }
         } catch (error) {
             console.error('Erreur lors du chargement du chat:', error);
+            navigation.setOptions({
+                headerTitle: 'Chat Error',
+            });
         }
     };
 
@@ -65,13 +68,13 @@ export default function ChatScreen() {
                     const data = doc.data();
                     return {
                         _id: doc.id,
-                        text: data.text,
+                        text: data.text || '',
                         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
                         user: {
-                            _id: data.senderEmail,
-                            name: data.senderName,
-                            email: data.senderEmail,
-                            avatar: data.senderImage || null
+                            _id: data.senderEmail || 'unknown',
+                            name: data.senderName || 'Unknown User',
+                            email: data.senderEmail || 'unknown@example.com',
+                            avatar: data.senderImage || 'https://via.placeholder.com/150'
                         }
                     };
                 });

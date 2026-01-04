@@ -93,10 +93,16 @@ export default function PetDetails() {
             </View>
 
             <View style={styles.bottomContainer}>
-                <TouchableOpacity onPress={InitiateChat}
-                    style={styles.adoptBtn}>
-                    <Text style={styles.adoptText}>Adopt Me</Text>
-                </TouchableOpacity>
+                {user?.email !== pet?.user?.email ? (
+                    <TouchableOpacity onPress={InitiateChat}
+                        style={styles.adoptBtn}>
+                        <Text style={styles.adoptText}>Adopt Me</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <View style={styles.disabledBtn}>
+                        <Text style={styles.adoptText}>You own this pet</Text>
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -128,5 +134,11 @@ const styles = StyleSheet.create({
         fontFamily: 'outfit-medium',
         fontSize: 20,
         color: Colors.WHITE
+    },
+    disabledBtn: {
+        padding: 15,
+        backgroundColor: Colors.GRAY,
+        borderRadius: 15,
+        opacity: 0.7
     }
 });
