@@ -16,15 +16,20 @@ export default function UserPost() {
 
     useEffect(() => {
         navigation.setOptions({
-            headerTitle: 'User Post'
+            headerTitle: 'User Post',
+            headerShown: true,
+            headerTransparent: false,
+            headerStyle: { backgroundColor: Colors.PRIMARY },
+            headerTintColor: Colors.WHITE
         });
         user && GetUserPost();
+        // console.log(user)
     }, [user]);
 
     const GetUserPost = async () => {
         setLoader(true);
         setUserPostList([]);
-        const q = query(collection(db, 'Pets'), where('email', '==', user?.email));
+        const q = query(collection(db, 'Pets'), where('user.email', '==', user?.email));
         const querySnapshot = await getDocs(q);
         const posts = [];
         querySnapshot.forEach((doc) => {
@@ -51,6 +56,7 @@ export default function UserPost() {
     const deletePost = async (docId) => {
         await deleteDoc(doc(db, 'Pets', docId));
         GetUserPost();
+        // Alert.alert('Post Deleted', 'Post deleted successfully');
     }
 
     return (
@@ -71,7 +77,8 @@ export default function UserPost() {
                         onPress={() => router.push({
                             pathname: '/pet-details',
                             params: {
-                                petId: item.id
+                                ...item,
+                                user: JSON.stringify(item.user)
                             }
                         })}
                         style={styles.itemContainer}
@@ -103,8 +110,7 @@ export default function UserPost() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: Colors.WHITE
+        padding: 20
     },
     title: {
         fontFamily: 'outfit-bold',

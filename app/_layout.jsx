@@ -36,6 +36,11 @@ export default function RootLayout() {
             headerShown: false
           }}
         />
+        <Stack.Screen name="chat/index"
+        // options={{
+        //   headerShown: false
+        // }}
+        />
       </Stack>
     </AuthProvider>
   );

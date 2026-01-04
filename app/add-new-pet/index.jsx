@@ -26,9 +26,18 @@ export default function AddNewPet() {
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showGenderModal, setShowGenderModal] = useState(false);
 
+    const generateRandomAvatar = () => {
+        const id = Math.floor(Math.random() * 99) + 1;
+        const gender = Math.random() > 0.5 ? 'men' : 'women';
+        return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
+    };
     useEffect(() => {
         navigation.setOptions({
-            headerTitle: 'Add New Pet'
+            headerTitle: 'Add New Pet',
+            headerShown: true,
+            headerTransparent: false,
+            headerStyle: { backgroundColor: Colors.PRIMARY },
+            headerTintColor: Colors.WHITE
         })
         GetCategories();
     }, [])
@@ -48,7 +57,7 @@ export default function AddNewPet() {
             mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 0.1, // Set quality to 0.1 to keep Base64 size under 1MB
+            quality: 0.1,
             base64: true
         });
 
@@ -85,7 +94,6 @@ export default function AddNewPet() {
                 throw new Error("No image data found. Please pick the image again.");
             }
 
-            // Bypass Firebase Storage completely by saving Base64 directly to Firestore
             await SaveFormData(base64Image);
 
             if (Platform.OS === 'android') {
@@ -108,14 +116,14 @@ export default function AddNewPet() {
     }
 
     const SaveFormData = async (imageUrl) => {
-        const docId = Date.now().toString();
+        const docId = Date.now();
         const userData = {
             name: user?.displayName || user?.email.split('@')[0],
             email: user?.email,
-            imageUrl: user?.photoURL || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+            imageUrl: user?.photoURL || generateRandomAvatar()
         };
 
-        await setDoc(doc(db, 'Pets', docId), {
+        await setDoc(doc(db, 'Pets', docId.toString()), {
             ...formData,
             imageUrl: imageUrl,
             user: userData,
@@ -175,7 +183,7 @@ export default function AddNewPet() {
                 <TouchableOpacity
                     onPress={imagePicker}
                     style={styles.imageContainer}>
-                    {!image ? <Image source={require('../../assets/images/placeholder.png')}
+                    {!image ? <Image source={require('../../assets/images/project/pet-paw.jpg')}
                         style={styles.image}
                     /> :
                         <Image source={{ uri: image }}
@@ -186,8 +194,10 @@ export default function AddNewPet() {
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Pet Name *</Text>
                     <TextInput
+                        placeholder="Enter pet's name"
+                        placeholderTextColor={Colors.GRAY}
+                        value={formData.name}
                         style={styles.input}
-                        placeholder="Pet Name"
                         onChangeText={(value) => handleInputChange('name', value)}
                     />
                 </View>
@@ -219,7 +229,9 @@ export default function AddNewPet() {
                     <Text style={styles.label}>Breed *</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Breed"
+                        placeholder="Enter breed"
+                        placeholderTextColor={Colors.GRAY}
+                        value={formData.breed}
                         onChangeText={(value) => handleInputChange('breed', value)}
                     />
                 </View>
@@ -228,7 +240,9 @@ export default function AddNewPet() {
                     <Text style={styles.label}>Age *</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Age"
+                        placeholder="Enter age"
+                        placeholderTextColor={Colors.GRAY}
+                        value={formData.age}
                         keyboardType="numeric"
                         onChangeText={(value) => handleInputChange('age', value)}
                     />
@@ -261,7 +275,9 @@ export default function AddNewPet() {
                     <Text style={styles.label}>Weight *</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Weight"
+                        placeholder="Enter weight (kg)"
+                        placeholderTextColor={Colors.GRAY}
+                        value={formData.weight}
                         keyboardType="numeric"
                         onChangeText={(value) => handleInputChange('weight', value)}
                     />
@@ -271,7 +287,9 @@ export default function AddNewPet() {
                     <Text style={styles.label}>Address *</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Address"
+                        placeholder="Enter address"
+                        placeholderTextColor={Colors.GRAY}
+                        value={formData.address}
                         onChangeText={(value) => handleInputChange('address', value)}
                     />
                 </View>
@@ -280,7 +298,9 @@ export default function AddNewPet() {
                     <Text style={styles.label}>About *</Text>
                     <TextInput
                         style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-                        placeholder="About"
+                        placeholder="Tell us more about the pet"
+                        placeholderTextColor={Colors.GRAY}
+                        value={formData.about}
                         numberOfLines={5}
                         multiline={true}
                         onChangeText={(value) => handleInputChange('about', value)}
