@@ -71,7 +71,9 @@ export default function Inbox() {
                 <View style={styles.chatContent}>
                     <View style={styles.topRow}>
                         <Text style={styles.userName}>{otherUser.name || 'Unknown User'}</Text>
-                        <Text style={styles.time}>{item.lastMessageTime}</Text>
+                        <Text style={styles.time}>
+                            {item.lastMessageTime ? new Date(item.lastMessageTime).toLocaleDateString([], { day: '2-digit', month: '2-digit' }) + ' ' + new Date(item.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </Text>
                     </View>
                     <Text
                         style={styles.lastMessage}

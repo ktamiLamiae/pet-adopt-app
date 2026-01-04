@@ -2,6 +2,8 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { AuthProvider } from "../context/AuthContext";
 
+import Colors from "../constants/Colors";
+
 export default function RootLayout() {
 
   useFonts
@@ -13,9 +15,12 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <Stack>
+      <Stack screenOptions={{
+        headerBackTitleVisible: false,
+        headerTintColor: Colors.WHITE
+      }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, headerTitle: '' }} />
         <Stack.Screen name="Auth/login/index"
           options={{
             headerShown: false
@@ -37,9 +42,15 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen name="chat/index"
-        // options={{
-        //   headerShown: false
-        // }}
+          options={{
+            headerShown: true
+          }}
+        />
+        <Stack.Screen name="user-post/index"
+          options={{
+            headerShown: true,
+            headerTitle: 'My Posts'
+          }}
         />
       </Stack>
     </AuthProvider>

@@ -1,13 +1,17 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
 import { signOutUser } from '../../services/authService';
+import { deleteUserAccount } from '../../services/userService';
 
 export default function Profile() {
     const router = useRouter();
     const { user } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogout = async () => {
         Alert.alert(
@@ -32,6 +36,26 @@ export default function Profile() {
                 }
             ]
         );
+    };
+
+    const handleDeleteAccount = async () => {
+        setIsLoading(true);
+        const result = await deleteUserAccount();
+        setIsLoading(false);
+
+        if (result.success) {
+            Alert.alert('Account deleted', 'Your account and data have been successfully deleted.');
+            router.replace('/');
+        } else {
+            if (result.error === 'auth/requires-recent-login') {
+                Alert.alert(
+                    'Re-authentication required',
+                    'Please log in again to delete your account.'
+                );
+            } else {
+                Alert.alert('Error', result.error || 'Failed to delete account');
+            }
+        }
     };
 
     const Menu = [
@@ -63,15 +87,35 @@ export default function Profile() {
             id: 4,
             name: 'Logout',
             icon: 'exit',
-            path: 'logout'
+        },
+        {
+            id: 6,
+            name: 'Delete Account',
+            icon: 'trash'
         }
     ];
 
     const onPressMenu = (item) => {
-        if (item.path === 'logout') {
+        if (item.name === 'Logout') {
             handleLogout();
             return;
         }
+        else if (item.name === 'Delete Account') {
+            Alert.alert(
+                'Delete Account',
+                'This action is irreversible. Are you sure?',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: handleDeleteAccount
+                    }
+                ]
+            );
+            return;
+        }
+
         router.push(item.path);
     };
 

@@ -61,7 +61,7 @@ export default function UserPost() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>UserPost</Text>
+            {/* <Text style={styles.title}>UserPost</Text> */}
 
             {userPostList?.length === 0 && !loader && (
                 <Text style={styles.noPostText}>No Post Found</Text>

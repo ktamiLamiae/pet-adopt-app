@@ -6,6 +6,13 @@ import { getStorage } from 'firebase/storage';
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
 
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+    'BloomFilter error',
+    'statusBarTranslucent'
+]);
+
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSyD7G3bzG3ycl4Aw_2rCmMckHxf5P9fcLz0",
     authDomain: "pet-adopt-867d8.firebaseapp.com",
