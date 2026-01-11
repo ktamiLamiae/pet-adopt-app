@@ -1,11 +1,68 @@
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { db } from '../../config/FirebaseConfig';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
+
+const UserPostItem = ({ item, OnEditPost, OnDeletePost, OnMarkAdopted }) => {
+    const router = useRouter();
+
+    return (
+        <TouchableOpacity
+            onPress={() => router.push({
+                pathname: '/pet-details',
+                params: {
+                    ...item,
+                    userName: item.user?.name,
+                    userEmail: item.user?.email,
+                    userImageUrl: item.user?.imageUrl
+                }
+            })}
+            style={styles.itemContainer}
+        >
+            <Image
+                source={{ uri: item?.imageUrl }}
+                style={styles.image}
+                resizeMode="cover"
+            />
+            <Text style={styles.nameText}>{item?.name}</Text>
+            <View style={styles.infoContainer}>
+                <Text style={styles.breedText}>{item?.breed}</Text>
+                <Text style={styles.ageText}>{item?.age} YRS</Text>
+            </View>
+            {item.adopted && (
+                <View style={styles.adoptedBadge}>
+                    <Text style={styles.adoptedText}>ADOPTED</Text>
+                </View>
+            )}
+            <View style={styles.buttonActionContainer}>
+                <Pressable
+                    onPress={() => OnEditPost(item)}
+                    style={styles.editButton}
+                >
+                    <Text style={styles.editButtonText}>Edit</Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => OnDeletePost(item.id)}
+                    style={styles.deleteButton}
+                >
+                    <Text style={styles.deleteText}>Delete</Text>
+                </Pressable>
+            </View>
+            <Pressable
+                onPress={() => OnMarkAdopted(item)}
+                style={[styles.adoptButton, item.adopted && styles.adoptedButton]}
+            >
+                <Text style={[styles.adoptButtonText, item.adopted && styles.adoptedButtonText]}>
+                    {item.adopted ? 'Mark Available' : 'Mark as Adopted'}
+                </Text>
+            </Pressable>
+        </TouchableOpacity>
+    );
+};
 
 export default function UserPost() {
     const navigation = useNavigation();
@@ -56,12 +113,27 @@ export default function UserPost() {
     const deletePost = async (docId) => {
         await deleteDoc(doc(db, 'Pets', docId));
         GetUserPost();
-        // Alert.alert('Post Deleted', 'Post deleted successfully');
+    }
+
+    const OnMarkAdopted = async (item) => {
+        const newStatus = !item.adopted;
+        await updateDoc(doc(db, 'Pets', item.id), {
+            adopted: newStatus
+        });
+        GetUserPost();
+        // ToastAndroid.show(isAdopted ? 'Marked as Adopted' : 'Marked as Available', ToastAndroid.SHORT);
+    }
+
+    const OnEditPost = (item) => {
+        router.push({
+            pathname: '/add-new-pet',
+            params: item
+        });
     }
 
     return (
         <View style={styles.container}>
-            {/* <Text style={styles.title}>UserPost</Text> */}
+            <Text style={styles.title}>User Post</Text>
 
             {userPostList?.length === 0 && !loader && (
                 <Text style={styles.noPostText}>No Post Found</Text>
@@ -73,33 +145,12 @@ export default function UserPost() {
                 onRefresh={GetUserPost}
                 refreshing={loader}
                 renderItem={({ item }) => (
-                    <TouchableOpacity
-                        onPress={() => router.push({
-                            pathname: '/pet-details',
-                            params: {
-                                ...item,
-                                user: JSON.stringify(item.user)
-                            }
-                        })}
-                        style={styles.itemContainer}
-                    >
-                        <Image
-                            source={{ uri: item?.imageUrl }}
-                            style={styles.image}
-                            resizeMode="cover"
-                        />
-                        <Text style={styles.nameText}>{item?.name}</Text>
-                        <View style={styles.infoContainer}>
-                            <Text style={styles.breedText}>{item?.breed}</Text>
-                            <Text style={styles.ageText}>{item?.age} YRS</Text>
-                        </View>
-                        <Pressable
-                            onPress={() => OnDeletePost(item.id)}
-                            style={styles.deleteButton}
-                        >
-                            <Text style={styles.deleteText}>Delete</Text>
-                        </Pressable>
-                    </TouchableOpacity>
+                    <UserPostItem
+                        item={item}
+                        OnEditPost={OnEditPost}
+                        OnDeletePost={OnDeletePost}
+                        OnMarkAdopted={OnMarkAdopted}
+                    />
                 )}
                 keyExtractor={(item) => item.id}
             />
@@ -154,11 +205,30 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.LIGHT_PRIMARY,
         borderRadius: 10,
     },
+    buttonActionContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 10,
+    },
     deleteButton: {
         backgroundColor: Colors.LIGHT_PRIMARY,
         padding: 7,
         borderRadius: 7,
-        marginTop: 10,
+        flex: 1
+    },
+    editButton: {
+        backgroundColor: Colors.WHITE,
+        padding: 5,
+        borderRadius: 7,
+        flex: 1,
+        borderWidth: 1,
+        borderColor: Colors.PRIMARY
+    },
+    editButtonText: {
+        fontFamily: 'outfit-medium',
+        textAlign: 'center',
+        fontSize: 14,
+        color: Colors.PRIMARY
     },
     deleteText: {
         fontFamily: 'outfit-medium',
@@ -172,5 +242,41 @@ const styles = StyleSheet.create({
         marginTop: 5,
         color: Colors.GRAY,
         textAlign: 'left'
+    },
+    adoptButton: {
+        backgroundColor: Colors.SECONDARY,
+        padding: 5,
+        borderRadius: 7,
+        marginTop: 10,
+        borderWidth: 1,
+        borderColor: Colors.SECONDARY
+    },
+    adoptButtonText: {
+        fontFamily: 'outfit-medium',
+        textAlign: 'center',
+        fontSize: 14,
+        color: Colors.BLACK
+    },
+    adoptedButton: {
+        backgroundColor: Colors.WHITE,
+        borderColor: Colors.GRAY
+    },
+    adoptedButtonText: {
+        color: Colors.GRAY
+    },
+    adoptedBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: 'rgba(0,128,0,0.7)', // Green
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 5,
+        zIndex: 10
+    },
+    adoptedText: {
+        color: Colors.WHITE,
+        fontFamily: 'outfit-bold',
+        fontSize: 10
     }
 });

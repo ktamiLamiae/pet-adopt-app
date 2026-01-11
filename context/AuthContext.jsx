@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { onAuthStateChange } from '../services/authService';
 import Shared from '../shared/Shared';
 
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         setFavList(result?.favorites ? result.favorites : []);
     }
 
-    const value = {
+    const value = useMemo(() => ({
         user,
         setUser,
         favList,
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!user,
         refreshFavorites: () => user && fetchFavorites(user)
-    };
+    }), [user, favList, loading]);
 
     return (
         <AuthContext.Provider value={value}>

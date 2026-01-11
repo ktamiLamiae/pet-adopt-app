@@ -6,7 +6,8 @@ import {
     signOut,
     updateProfile
 } from 'firebase/auth';
-import { auth } from '../config/FirebaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../config/FirebaseConfig';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -28,6 +29,14 @@ export const signUpWithEmail = async (email, password, fullName) => {
             displayName: fullName
         });
 
+        // Initialize Firestore user profile
+        await setDoc(doc(db, 'Users', user.email), {
+            displayName: fullName,
+            email: user.email,
+            uid: user.uid,
+            createdAt: new Date()
+        });
+
         return {
             success: true,
             user: {
@@ -38,7 +47,6 @@ export const signUpWithEmail = async (email, password, fullName) => {
             }
         };
     } catch (error) {
-        console.error('Sign up error:', error);
         return {
             success: false,
             error: getErrorMessage(error.code)
@@ -67,7 +75,6 @@ export const signInWithEmail = async (email, password) => {
             }
         };
     } catch (error) {
-        console.error('Sign in error:', error);
         return {
             success: false,
             error: getErrorMessage(error.code)
@@ -88,7 +95,6 @@ export const signOutUser = async () => {
             success: true
         };
     } catch (error) {
-        console.error('Sign out error:', error);
         return {
             success: false,
             error: 'Failed to sign out'
@@ -105,18 +111,63 @@ export const getCurrentUser = () => {
 };
 
 /**
+ * Update user profile
+ * @param {string} fullName - New full name
+ * @param {string} photoURL - New photo URL
+ * @returns {Promise<Object>} Success status
+ */
+export const updateUserProfile = async (fullName, photoURL) => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user logged in');
+
+        // Update basic profile (name only to avoid length errors)
+        await updateProfile(user, {
+            displayName: fullName
+        });
+
+        // Save detailed profile to Firestore
+        await setDoc(doc(db, 'Users', user.email), {
+            displayName: fullName,
+            photoURL: photoURL,
+            email: user.email,
+            uid: user.uid,
+            updatedAt: new Date()
+        }, { merge: true });
+
+        return {
+            success: true,
+            user: {
+                ...user,
+                displayName: fullName,
+                photoURL: photoURL
+            }
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+/**
  * Listen to authentication state changes
  * @param {Function} callback - Callback function to handle auth state changes
  * @returns {Function} Unsubscribe function
  */
 export const onAuthStateChange = (callback) => {
-    return onAuthStateChanged(auth, (user) => {
+    return onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // Fetch extra profile info from Firestore
+            const userDoc = await getDoc(doc(db, 'Users', user.email));
+            const userData = userDoc.exists() ? userDoc.data() : {};
+
             callback({
                 uid: user.uid,
                 email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL
+                displayName: userData.displayName || user.displayName,
+                photoURL: userData.photoURL || user.photoURL
             });
         } else {
             callback(null);

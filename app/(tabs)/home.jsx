@@ -1,6 +1,4 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { Link } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Header from "../../components/Home/Header";
 import PetListByCategory from "../../components/Home/PetListByCategory";
 import Slider from "../../components/Home/Slider";
@@ -21,12 +19,6 @@ export default function Home() {
             <View style={{ flex: 1 }}>
                 <PetListByCategory />
             </View>
-
-            <Link href={'/add-new-pet'}
-                style={styles.newPost}>
-                <MaterialIcons name="pets" size={24} color={Colors.PRIMARY} />
-                <Text style={styles.text}>Add New Pet</Text>
-            </Link>
 
         </View>
     );

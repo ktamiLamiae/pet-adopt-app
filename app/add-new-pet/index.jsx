@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useNavigation, useRouter } from 'expo-router';
+import * as Location from 'expo-location';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
@@ -11,6 +13,7 @@ export default function AddNewPet() {
     const navigation = useNavigation();
     const router = useRouter();
     const { user } = useAuth();
+    const params = useLocalSearchParams();
     const [formData, setFormData] = useState({
         category: 'Cats',
         sex: 'Male'
@@ -33,14 +36,35 @@ export default function AddNewPet() {
     };
     useEffect(() => {
         navigation.setOptions({
-            headerTitle: 'Add New Pet',
+            headerTitle: params?.id ? 'Edit Pet' : 'Add New Pet',
             headerShown: true,
             headerTransparent: false,
             headerStyle: { backgroundColor: Colors.PRIMARY },
             headerTintColor: Colors.WHITE
         })
+    }, [params?.id])
+
+    useEffect(() => {
         GetCategories();
     }, [])
+
+    useEffect(() => {
+        if (params?.id) {
+            setFormData({
+                name: params?.name,
+                category: params?.category,
+                breed: params?.breed,
+                age: params?.age,
+                sex: params?.sex,
+                weight: params?.weight,
+                address: params?.address,
+                about: params?.about
+            });
+            setSelectedCategory(params?.category);
+            setGender(params?.sex);
+            setImage(params?.imageUrl);
+        }
+    }, [params?.id])
 
     const GetCategories = async () => {
         setCategoryList([]);
@@ -74,12 +98,45 @@ export default function AddNewPet() {
         }))
     }
 
+    const GetCurrentLocation = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            ToastAndroid.show('Permission to access location was denied', ToastAndroid.SHORT);
+            return;
+        }
+
+        setLoader(true);
+        try {
+            let location = await Location.getCurrentPositionAsync({});
+            const { latitude, longitude } = location.coords;
+            const reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+
+            if (reverseGeocode.length > 0) {
+                const address = reverseGeocode[0];
+                const formattedAddress = `${address.name || ''} ${address.street || ''}, ${address.city || ''}, ${address.region || ''} ${address.postalCode || ''}`.trim().replace(/^[ ,]+|[ ,]+$/g, '').replace(/ ,/g, ',');
+                handleInputChange('address', formattedAddress);
+            }
+        } catch (error) {
+            console.error(error);
+            ToastAndroid.show('Error fetching location', ToastAndroid.SHORT);
+        } finally {
+            setLoader(false);
+        }
+    }
+
     const onSubmit = () => {
         if (Object.keys(formData).length < 8 || !image) {
             ToastAndroid.show('Please fill all fields and pick an image', ToastAndroid.SHORT);
             return;
         }
-        UploadImage();
+
+        if (params?.id && !base64Image) {
+            // Editing and image not changed
+            setLoader(true);
+            SaveFormData(image);
+        } else {
+            UploadImage();
+        }
     }
 
     const UploadImage = async () => {
@@ -97,7 +154,7 @@ export default function AddNewPet() {
             await SaveFormData(base64Image);
 
             if (Platform.OS === 'android') {
-                ToastAndroid.show('Pet added successfully!', ToastAndroid.SHORT);
+                ToastAndroid.show(params?.id ? 'Pet updated successfully!' : 'Pet added successfully!', ToastAndroid.SHORT);
             }
         } catch (error) {
             setLoader(false);
@@ -116,22 +173,39 @@ export default function AddNewPet() {
     }
 
     const SaveFormData = async (imageUrl) => {
-        const docId = Date.now();
+        const docId = params?.id ? params.id : Date.now().toString();
         const userData = {
             name: user?.displayName || user?.email.split('@')[0],
             email: user?.email,
             imageUrl: user?.photoURL || generateRandomAvatar()
         };
 
-        await setDoc(doc(db, 'Pets', docId.toString()), {
+        await setDoc(doc(db, 'Pets', docId), {
             ...formData,
             imageUrl: imageUrl,
             user: userData,
-            id: docId
+            id: docId,
+            adopted: params?.id ? (formData.adopted || false) : false // Default to false for new pets
         });
 
         setLoader(false);
+
+        // Navigate first, then clear form
         router.replace('/(tabs)/home');
+
+        // Clear form after navigation if adding new pet (not editing)
+        if (!params?.id) {
+            setTimeout(() => {
+                setFormData({
+                    category: 'Cats',
+                    sex: 'Male'
+                });
+                setGender('Male');
+                setSelectedCategory('Cats');
+                setImage(null);
+                setBase64Image(null);
+            }, 100);
+        }
     }
 
 
@@ -178,7 +252,7 @@ export default function AddNewPet() {
                 <Text style={{
                     fontFamily: 'outfit-medium',
                     fontSize: 20
-                }}>Add New Pet for adoption</Text>
+                }}>{params?.id ? 'Edit Pet publication' : 'Add New Pet for adoption'}</Text>
 
                 <TouchableOpacity
                     onPress={imagePicker}
@@ -285,13 +359,20 @@ export default function AddNewPet() {
 
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Address *</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Enter address"
-                        placeholderTextColor={Colors.GRAY}
-                        value={formData.address}
-                        onChangeText={(value) => handleInputChange('address', value)}
-                    />
+                    <View style={styles.addressInputContainer}>
+                        <TextInput
+                            style={[styles.input, { flex: 1, marginTop: 0 }]}
+                            placeholder="Enter address"
+                            placeholderTextColor={Colors.GRAY}
+                            value={formData.address}
+                            onChangeText={(value) => handleInputChange('address', value)}
+                        />
+                        <TouchableOpacity
+                            onPress={GetCurrentLocation}
+                            style={styles.locationButton}>
+                            <Ionicons name="location" size={24} color={Colors.PRIMARY} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -312,7 +393,7 @@ export default function AddNewPet() {
                     onPress={onSubmit}
                     style={styles.button}>
                     {loader ? <ActivityIndicator size="large" color={Colors.WHITE} /> :
-                        <Text style={styles.buttonText}>Submit</Text>}
+                        <Text style={styles.buttonText}>{params?.id ? 'Update Pet' : 'Submit'}</Text>}
                 </TouchableOpacity>
 
                 <View style={{ height: 50 }} />
@@ -356,6 +437,26 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 2
+    },
+    addressInputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginTop: 5
+    },
+    locationButton: {
+        backgroundColor: Colors.WHITE,
+        padding: 15,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: Colors.WHITE,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+        height: 60,
+        justifyContent: 'center'
     },
     pickerContainer: {
         backgroundColor: Colors.WHITE,

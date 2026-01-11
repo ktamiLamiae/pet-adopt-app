@@ -29,7 +29,7 @@ export default function Favourite() {
         try {
             const q = query(
                 collection(db, 'Pets'),
-                where('id', 'in', favList.map(id => Number(id)))
+                where('id', 'in', favList)
             );
 
             const querySnapshot = await getDocs(q);

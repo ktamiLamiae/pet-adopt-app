@@ -8,14 +8,14 @@ export default function MarkFav({ pet }) {
     const { user, favList, setFavList, refreshFavorites } = useAuth();
 
     const AddToFav = async () => {
-        const updatedFavList = [...favList, Number(pet.id)];
+        const updatedFavList = [...favList, pet.id];
         setFavList(updatedFavList);
         await Shared.UpdateFav(user, updatedFavList);
         refreshFavorites();
     };
 
     const RemoveFromFav = async () => {
-        const updatedFavList = favList.filter(item => Number(item) !== Number(pet.id));
+        const updatedFavList = favList.filter(item => item !== pet.id);
         setFavList(updatedFavList);
         await Shared.UpdateFav(user, updatedFavList);
         refreshFavorites();
@@ -23,7 +23,7 @@ export default function MarkFav({ pet }) {
 
     return (
         <View>
-            {favList?.some(item => Number(item) === Number(pet.id)) ? (
+            {favList?.some(item => item === pet.id) ? (
                 <Pressable onPress={RemoveFromFav}>
                     <Ionicons name="heart" size={30} color={Colors.RED} />
                 </Pressable>

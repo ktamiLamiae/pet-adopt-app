@@ -42,15 +42,13 @@ export const deleteUserAccount = async () => {
         };
 
     } catch (error) {
-        console.error("Error deleting user account:", error);
-
+        // Handle requires-recent-login error
         if (error.code === 'auth/requires-recent-login') {
             return {
                 success: false,
-                error: 'auth/requires-recent-login'
+                error: 'For security reasons, please log out and log back in before deleting your account.'
             };
         }
-
         return {
             success: false,
             error: error.message || 'Failed to delete account'

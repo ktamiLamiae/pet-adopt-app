@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
-import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AboutPet from '../../components/PetDetails/AboutPet';
 import OwnerInfo from '../../components/PetDetails/OwnerInfo';
 import PetInfo from '../../components/PetDetails/PetInfo';
@@ -16,14 +16,21 @@ export default function PetDetails() {
     const navigation = useNavigation();
     const { user } = useAuth();
 
-
-    const pet = {
-        ...params,
-        user: params.user ? JSON.parse(params.user) : null
-    };
+    // Reconstruct pet object from flat params (no JSON parsing needed)
+    const pet = useMemo(() => {
+        const { userName, userEmail, userImageUrl, adopted, ...rest } = params;
+        return {
+            ...rest,
+            user: {
+                name: userName,
+                email: userEmail,
+                imageUrl: userImageUrl
+            },
+            adopted: adopted === 'true'
+        };
+    }, [params]);
 
     useEffect(() => {
-        // console.log(pet, user);
         navigation.setOptions({
             headerTransparent: true,
             headerTitle: ''
@@ -93,11 +100,15 @@ export default function PetDetails() {
             </View>
 
             <View style={styles.bottomContainer}>
-                {user?.email !== pet?.user?.email ? (
-                    <TouchableOpacity onPress={InitiateChat}
-                        style={styles.adoptBtn}>
-                        <Text style={styles.adoptText}>Adopt Me</Text>
-                    </TouchableOpacity>
+                {pet?.user?.email !== user?.email ? (
+                    <Pressable
+                        disabled={pet?.adopted}
+                        onPress={InitiateChat}
+                        style={[styles.adoptBtn, pet?.adopted && styles.adoptBtnDisabled]}>
+                        <Text style={[styles.adoptText, pet?.adopted && styles.adoptTextDisabled]}>
+                            {pet?.adopted ? 'Already Adopted' : 'Adopt Me'}
+                        </Text>
+                    </Pressable>
                 ) : (
                     <View style={styles.disabledBtn}>
                         <Text style={styles.adoptText}>You own this pet</Text>
@@ -139,6 +150,13 @@ const styles = StyleSheet.create({
         padding: 15,
         backgroundColor: Colors.GRAY,
         borderRadius: 15,
-        opacity: 0.7
+        flex: 1
+    },
+    adoptBtnDisabled: {
+        backgroundColor: Colors.GRAY,
+        opacity: 0.6
+    },
+    adoptTextDisabled: {
+        color: Colors.WHITE
     }
 });

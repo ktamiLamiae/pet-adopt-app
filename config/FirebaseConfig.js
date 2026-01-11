@@ -1,12 +1,11 @@
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getReactNativePersistence, initializeAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore, memoryLocalCache } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
+import { LogBox } from 'react-native';
 import 'react-native-get-random-values';
 import 'react-native-url-polyfill/auto';
-
-import { LogBox } from 'react-native';
 
 LogBox.ignoreLogs([
     'BloomFilter error',
@@ -25,7 +24,9 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+    localCache: memoryLocalCache(),
+});
 export const storage = getStorage(app);
 export const auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage)

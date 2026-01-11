@@ -1,4 +1,6 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
 import MarkFav from '../MarkFav';
 
@@ -11,9 +13,22 @@ export default function PetInfo({ pet }) {
                 resizeMode="cover"
             />
             <View style={styles.infoContainer}>
-                <View>
-                    <Text style={styles.name}>{pet?.name}</Text>
-                    <Text style={styles.address}>{pet?.address}</Text>
+                <View style={{ flex: 1 }}>
+                    <View style={styles.titleRow}>
+                        <Text style={styles.name}>{pet?.name}</Text>
+                        {pet?.adopted && (
+                            <View style={styles.adoptedBadge}>
+                                <Text style={styles.adoptedText}>ADOPTED</Text>
+                            </View>
+                        )}
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pet?.address)}`)}
+                        style={styles.addressContainer}
+                    >
+                        <Ionicons name="location-outline" size={18} color={Colors.GRAY} />
+                        <Text style={styles.address}>{pet?.address}</Text>
+                    </TouchableOpacity>
                 </View>
                 <MarkFav pet={pet} />
             </View>
@@ -40,6 +55,29 @@ const styles = StyleSheet.create({
     address: {
         fontFamily: 'outfit',
         fontSize: 16,
-        color: Colors.GRAY
+        color: Colors.GRAY,
+        flex: 1
+    },
+    addressContainer: {
+        flexDirection: 'row',
+        gap: 5,
+        alignItems: 'center',
+        marginTop: 5
+    },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10
+    },
+    adoptedBadge: {
+        backgroundColor: Colors.SECONDARY,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 20
+    },
+    adoptedText: {
+        color: Colors.WHITE,
+        fontFamily: 'outfit-medium',
+        fontSize: 12
     }
 });

@@ -1,7 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { db } from '../../config/FirebaseConfig';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
@@ -52,13 +53,42 @@ export default function Inbox() {
         return otherUser ? otherUser[0] : null;
     };
 
+    const onDeleteChat = (docId) => {
+        Alert.alert(
+            'Delete Chat',
+            'Are you sure you want to delete this conversation?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const messagesRef = collection(db, 'Chat', docId, 'messages');
+                            const messagesSnapshot = await getDocs(messagesRef);
+                            const deletePromises = messagesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                            await Promise.all(deletePromises);
+
+                            await deleteDoc(doc(db, 'Chat', docId));
+                        } catch (error) {
+                            console.error('Error deleting chat:', error);
+                            Alert.alert('Error', 'Failed to delete chat');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const renderItem = ({ item }) => {
         const otherUser = MapOtherUser(item.users);
         if (!otherUser) return null;
 
+        const isUnread = item.unreadBy && item.unreadBy.includes(user?.email);
+
         return (
             <Pressable
-                style={styles.chatItem}
+                style={[styles.chatItem, isUnread && styles.chatItemUnread]}
                 onPress={() => router.push({
                     pathname: '/chat',
                     params: { id: item.docId }
@@ -70,19 +100,30 @@ export default function Inbox() {
                 />
                 <View style={styles.chatContent}>
                     <View style={styles.topRow}>
-                        <Text style={styles.userName}>{otherUser.name || 'Unknown User'}</Text>
+                        <Text style={[styles.userName, isUnread && styles.userNameUnread]}>{otherUser.name || 'Unknown User'}</Text>
                         <Text style={styles.time}>
                             {item.lastMessageTime ? new Date(item.lastMessageTime).toLocaleDateString([], { day: '2-digit', month: '2-digit' }) + ' ' + new Date(item.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </Text>
                     </View>
-                    <Text
-                        style={styles.lastMessage}
-                        numberOfLines={1}
-                        ellipsizeMode='tail'
-                    >
-                        {item.lastMessage}
-                    </Text>
+                    <View style={styles.bottomRow}>
+                        <Text
+                            style={[styles.lastMessage, isUnread && styles.lastMessageUnread]}
+                            numberOfLines={1}
+                            ellipsizeMode='tail'
+                        >
+                            {item.lastMessage}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => onDeleteChat(item.docId)}
+                            style={styles.deleteButton}
+                        >
+                            <Ionicons name="trash-outline" size={20} color={Colors.GRAY} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
+                {isUnread && (
+                    <View style={styles.unreadIndicator} />
+                )}
             </Pressable>
         );
     };
@@ -161,7 +202,17 @@ const styles = StyleSheet.create({
     lastMessage: {
         fontFamily: 'outfit',
         fontSize: 14,
-        color: Colors.GRAY
+        color: Colors.GRAY,
+        flex: 1
+    },
+    bottomRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
+    deleteButton: {
+        padding: 5,
+        marginLeft: 10
     },
     emptyContainer: {
         marginTop: 50,
@@ -170,6 +221,29 @@ const styles = StyleSheet.create({
     emptyText: {
         fontFamily: 'outfit',
         fontSize: 18,
+        color: Colors.GRAY
+    },
+    chatItemUnread: {
+        backgroundColor: '#F0F9FF' // Light blue background for unread
+    },
+    userNameUnread: {
+        fontFamily: 'outfit-bold',
+        color: Colors.PRIMARY
+    },
+    lastMessageUnread: {
+        fontFamily: 'outfit-medium',
+        color: Colors.BLACK
+    },
+    unreadIndicator: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: Colors.SECONDARY,
+        marginLeft: 10
+    },
+    time: {
+        fontFamily: 'outfit',
+        fontSize: 12,
         color: Colors.GRAY
     }
 });

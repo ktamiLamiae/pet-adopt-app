@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, setDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import 'react-native-gesture-handler';
@@ -24,13 +24,48 @@ export default function ChatScreen() {
     const currentUserEmail = user?.email;
 
     useEffect(() => {
-        if (!chatId) {
+        if (!chatId || !currentUserEmail) {
             router.back();
             return;
         }
+
         GetUserDetails();
         GetMessages();
-    }, [chatId]);
+
+        MarkAsRead();
+        const timer = setTimeout(() => {
+            MarkAsRead();
+        }, 1000);
+
+        return () => {
+            clearTimeout(timer);
+            MarkAsRead();
+        };
+    }, [chatId, currentUserEmail]);
+
+    const MarkAsRead = async () => {
+        try {
+            if (!currentUserEmail) return;
+
+            const chatRef = doc(db, 'Chat', chatId);
+            const chatDoc = await getDoc(chatRef);
+
+            if (chatDoc.exists()) {
+                const data = chatDoc.data();
+                const currentUnreadBy = data.unreadBy || [];
+
+                if (currentUnreadBy.includes(currentUserEmail)) {
+                    const newUnreadBy = currentUnreadBy.filter(email => email !== currentUserEmail);
+
+                    await updateDoc(chatRef, {
+                        unreadBy: newUnreadBy
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error marking as read:', error);
+        }
+    };
 
     const GetUserDetails = async () => {
         try {
@@ -103,10 +138,19 @@ export default function ChatScreen() {
                 createdAt: new Date().toISOString()
             });
 
+
+            // Update chat metadata and mark as unread for other user
+            const otherUserEmail = chatDetails?.users?.find(u => u.email !== currentUserEmail)?.email;
+            const currentUnreadBy = chatDetails?.unreadBy || [];
+            const newUnreadBy = otherUserEmail && !currentUnreadBy.includes(otherUserEmail)
+                ? [...currentUnreadBy, otherUserEmail]
+                : currentUnreadBy;
+
             await setDoc(doc(db, 'Chat', chatId), {
                 ...chatDetails,
                 lastMessage: message.text,
-                lastMessageTime: new Date().toISOString()
+                lastMessageTime: new Date().toISOString(),
+                unreadBy: newUnreadBy
             }, { merge: true });
 
         } catch (error) {
@@ -129,7 +173,7 @@ export default function ChatScreen() {
                 }}
                 renderAvatar={renderAvatar}
                 renderAvatarOnTop
-                showUserAvatar
+                showUserAvatar={false}
                 messagesContainerStyle={styles.messagesContainer}
 
                 renderInputToolbar={(props) => (
@@ -140,8 +184,8 @@ export default function ChatScreen() {
                 )}
 
                 keyboardAvoidingViewProps={{
-                    behavior: Platform.OS === 'ios' ? 'padding' : undefined,
-                    keyboardVerticalOffset: Platform.OS === 'ios' ? 90 : 0
+                    behavior: Platform.OS === 'ios' ? 'padding' : 'height',
+                    keyboardVerticalOffset: Platform.OS === 'ios' ? 95 : 0
                 }}
 
                 textInputProps={{

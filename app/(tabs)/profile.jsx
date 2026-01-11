@@ -60,10 +60,16 @@ export default function Profile() {
 
     const Menu = [
         {
+            id: 7,
+            name: 'Edit Profile',
+            icon: 'person-add',
+            path: '/edit-profile'
+        },
+        {
             id: 1,
             name: 'Add New Pet',
             icon: 'add-circle',
-            path: '/add-new-pet'
+            path: '/(tabs)/create'
         },
         {
             id: 5,
@@ -121,31 +127,28 @@ export default function Profile() {
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Profile</Text>
+            </View>
+
+            <View style={styles.profileCard}>
+                <View style={styles.avatarContainer}>
+                    {user?.photoURL ? (
+                        <Image source={{ uri: user.photoURL }} style={styles.avatar} />
+                    ) : (
+                        <Ionicons name="person-circle" size={80} color={Colors.PRIMARY} />
+                    )}
+                </View>
+
+                <View style={styles.userInfo}>
+                    <Text style={styles.userName}>{user?.displayName || 'User'}</Text>
+                    <Text style={styles.userEmail}>{user?.email || 'No email'}</Text>
+                </View>
+            </View>
+
             <FlatList
                 data={Menu}
                 keyExtractor={(item) => item.id.toString()}
-                ListHeaderComponent={
-                    <View>
-                        <View style={styles.header}>
-                            <Text style={styles.title}>Profile</Text>
-                        </View>
-
-                        <View style={styles.profileCard}>
-                            <View style={styles.avatarContainer}>
-                                {user?.photoURL ? (
-                                    <Image source={{ uri: user.photoURL }} style={styles.avatar} />
-                                ) : (
-                                    <Ionicons name="person-circle" size={80} color={Colors.PRIMARY} />
-                                )}
-                            </View>
-
-                            <View style={styles.userInfo}>
-                                <Text style={styles.userName}>{user?.displayName || 'User'}</Text>
-                                <Text style={styles.userEmail}>{user?.email || 'No email'}</Text>
-                            </View>
-                        </View>
-                    </View>
-                }
                 renderItem={({ item }) => (
                     <Pressable
                         style={styles.menuItem}
@@ -158,6 +161,7 @@ export default function Profile() {
                     </Pressable>
                 )}
                 contentContainerStyle={{ paddingBottom: 20 }}
+                style={styles.menuList}
             />
         </View>
     );
@@ -173,6 +177,7 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingBottom: 40,
         backgroundColor: Colors.PRIMARY,
+        zIndex: 5,
     },
     title: {
         fontFamily: 'outfit-bold',
@@ -194,6 +199,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3.84,
         elevation: 5,
+        zIndex: 10,
     },
     avatar: {
         width: 80,
@@ -230,6 +236,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 2,
+    },
+    menuList: {
+        flex: 1,
+        marginTop: 10,
     },
     iconContainer: {
         width: 45,
