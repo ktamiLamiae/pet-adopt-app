@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Linking, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { db } from './../../config/FirebaseConfig';
 import Colors from './../../constants/Colors';
@@ -99,15 +99,47 @@ export default function AddNewPet() {
     }
 
     const GetCurrentLocation = async () => {
+        // 1. Check if location services are enabled
+        const enabled = await Location.hasServicesEnabledAsync();
+        if (!enabled) {
+            if (Platform.OS === 'android') {
+                try {
+                    // This prompts the user to enable location services automatically on Android
+                    await Location.enableNetworkProviderAsync();
+                } catch (e) {
+                    Alert.alert(
+                        'Location Disabled',
+                        'Please enable location services in your system settings to use this feature.',
+                        [{ text: 'Open Settings', onPress: () => Linking.openSettings() }, { text: 'Cancel' }]
+                    );
+                    return;
+                }
+            } else {
+                Alert.alert(
+                    'Location Disabled',
+                    'Please enable location services in your system settings to use this feature.',
+                    [{ text: 'Open Settings', onPress: () => Linking.openSettings() }, { text: 'Cancel' }]
+                );
+                return;
+            }
+        }
+
+        // 2. Request permissions
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-            ToastAndroid.show('Permission to access location was denied', ToastAndroid.SHORT);
+            Alert.alert(
+                'Permission Denied',
+                'Permission to access location was denied. Please enable it in the app settings.',
+                [{ text: 'Open Settings', onPress: () => Linking.openSettings() }, { text: 'Cancel' }]
+            );
             return;
         }
 
         setLoader(true);
         try {
-            let location = await Location.getCurrentPositionAsync({});
+            let location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            });
             const { latitude, longitude } = location.coords;
             const reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
 
@@ -118,7 +150,7 @@ export default function AddNewPet() {
             }
         } catch (error) {
             console.error(error);
-            ToastAndroid.show('Error fetching location', ToastAndroid.SHORT);
+            Alert.alert('Location Error', 'Unable to fetch current location. Please check your connection and try again.');
         } finally {
             setLoader(false);
         }

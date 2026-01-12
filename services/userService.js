@@ -19,21 +19,25 @@ export const deleteUserAccount = async () => {
         }
 
         // 1. Delete User's Pets
-        const petsQuery = query(collection(db, 'Pets'), where('user.email', '==', currentUser.email));
+        const lowerEmail = currentUser.email.toLowerCase();
+        const petsQuery = query(collection(db, 'Pets'), where('user.email', '==', lowerEmail));
         const petsSnapshot = await getDocs(petsQuery);
         const deletePetsPromises = petsSnapshot.docs.map(doc => deleteDoc(doc.ref));
         await Promise.all(deletePetsPromises);
 
         // 2. Delete User's Favorites
-        await deleteDoc(doc(db, 'UserFavPet', currentUser.email));
+        await deleteDoc(doc(db, 'UserFavPet', lowerEmail));
 
         // 3. Delete User's Chats
-        const chatsQuery = query(collection(db, 'Chat'), where('userIds', 'array-contains', currentUser.email));
+        const chatsQuery = query(collection(db, 'Chat'), where('userIds', 'array-contains', lowerEmail));
         const chatsSnapshot = await getDocs(chatsQuery);
         const deleteChatsPromises = chatsSnapshot.docs.map(doc => deleteDoc(doc.ref));
         await Promise.all(deleteChatsPromises);
 
-        // 4. Delete Auth User
+        // 4. Delete Firestore User Document
+        await deleteDoc(doc(db, 'Users', lowerEmail));
+
+        // 5. Delete Auth User
         await deleteUser(currentUser);
 
         return {

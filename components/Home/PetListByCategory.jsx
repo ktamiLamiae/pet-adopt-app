@@ -32,8 +32,8 @@ export default function PetListByCategory() {
             q,
             (querySnapshot) => {
                 const pets = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
+                    ...doc.data(),
+                    id: doc.id
                 }));
                 setPetList(pets);
                 setLoader(false);

@@ -58,7 +58,15 @@ export default function Profile() {
         }
     };
 
+    const { isAdmin } = useAuth();
+
     const Menu = [
+        ...(isAdmin ? [{
+            id: 8,
+            name: 'Admin Dashboard',
+            icon: 'grid',
+            path: '/admin'
+        }] : []),
         {
             id: 7,
             name: 'Edit Profile',

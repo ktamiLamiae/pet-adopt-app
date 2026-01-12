@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, documentId, getDocs, query, where } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import PetListItem from '../../components/Home/PetListItem';
@@ -29,13 +29,13 @@ export default function Favourite() {
         try {
             const q = query(
                 collection(db, 'Pets'),
-                where('id', 'in', favList)
+                where(documentId(), 'in', favList)
             );
 
             const querySnapshot = await getDocs(q);
             const pets = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
+                ...doc.data(),
+                id: doc.id
             }));
 
             setFavPetList(pets);

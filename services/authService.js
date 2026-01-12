@@ -30,9 +30,9 @@ export const signUpWithEmail = async (email, password, fullName) => {
         });
 
         // Initialize Firestore user profile
-        await setDoc(doc(db, 'Users', user.email), {
+        await setDoc(doc(db, 'Users', user.email.toLowerCase()), {
             displayName: fullName,
-            email: user.email,
+            email: user.email.toLowerCase(),
             uid: user.uid,
             createdAt: new Date()
         });
@@ -127,10 +127,10 @@ export const updateUserProfile = async (fullName, photoURL) => {
         });
 
         // Save detailed profile to Firestore
-        await setDoc(doc(db, 'Users', user.email), {
+        await setDoc(doc(db, 'Users', user.email.toLowerCase()), {
             displayName: fullName,
             photoURL: photoURL,
-            email: user.email,
+            email: user.email.toLowerCase(),
             uid: user.uid,
             updatedAt: new Date()
         }, { merge: true });
@@ -160,14 +160,16 @@ export const onAuthStateChange = (callback) => {
     return onAuthStateChanged(auth, async (user) => {
         if (user) {
             // Fetch extra profile info from Firestore
-            const userDoc = await getDoc(doc(db, 'Users', user.email));
-            const userData = userDoc.exists() ? userDoc.data() : {};
+            const userDoc = await getDoc(doc(db, 'Users', user.email.toLowerCase()));
+            const userData = userDoc.exists() ? userDoc.data() : null;
 
             callback({
                 uid: user.uid,
                 email: user.email,
-                displayName: userData.displayName || user.displayName,
-                photoURL: userData.photoURL || user.photoURL
+                displayName: userData?.displayName || user.displayName,
+                photoURL: userData?.photoURL || user.photoURL,
+                role: userData?.role || 'user',
+                profileExists: !!userData
             });
         } else {
             callback(null);

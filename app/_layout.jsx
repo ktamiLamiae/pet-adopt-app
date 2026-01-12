@@ -52,6 +52,26 @@ export default function RootLayout() {
             headerTitle: 'My Posts'
           }}
         />
+        <Stack.Screen name="admin/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen name="admin/pets"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen name="admin/users"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen name="admin/categories"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </AuthProvider>
   );

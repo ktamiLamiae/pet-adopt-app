@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useMemo } from "react";
+import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Colors from "../../constants/Colors";
 import MarkFav from "../MarkFav";
@@ -7,21 +7,11 @@ import MarkFav from "../MarkFav";
 const PetListItem = ({ pet }) => {
     const router = useRouter();
 
-    const navParams = useMemo(() => {
-        const { user, ...petData } = pet;
-        return {
-            ...petData,
-            userName: user?.name,
-            userEmail: user?.email,
-            userImageUrl: user?.imageUrl
-        };
-    }, [pet]);
-
     return (
         <TouchableOpacity
             onPress={() => router.push({
                 pathname: '/pet-details',
-                params: navParams
+                params: { id: pet.id }
             })}
             style={styles.container}>
             <View style={{ position: 'absolute', zIndex: 10, right: 10, top: 10 }}>

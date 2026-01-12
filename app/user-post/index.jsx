@@ -14,12 +14,7 @@ const UserPostItem = ({ item, OnEditPost, OnDeletePost, OnMarkAdopted }) => {
         <TouchableOpacity
             onPress={() => router.push({
                 pathname: '/pet-details',
-                params: {
-                    ...item,
-                    userName: item.user?.name,
-                    userEmail: item.user?.email,
-                    userImageUrl: item.user?.imageUrl
-                }
+                params: { id: item.id }
             })}
             style={styles.itemContainer}
         >

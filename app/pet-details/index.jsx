@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
-import { useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AboutPet from '../../components/PetDetails/AboutPet';
 import OwnerInfo from '../../components/PetDetails/OwnerInfo';
 import PetInfo from '../../components/PetDetails/PetInfo';
@@ -10,25 +10,29 @@ import PetSubInfo from '../../components/PetDetails/PetSubInfo';
 import { db } from '../../config/FirebaseConfig';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
+import { getPetDetail } from '../../services/petService';
 
 export default function PetDetails() {
     const params = useLocalSearchParams();
     const navigation = useNavigation();
     const { user } = useAuth();
+    const [pet, setPet] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Reconstruct pet object from flat params (no JSON parsing needed)
-    const pet = useMemo(() => {
-        const { userName, userEmail, userImageUrl, adopted, ...rest } = params;
-        return {
-            ...rest,
-            user: {
-                name: userName,
-                email: userEmail,
-                imageUrl: userImageUrl
-            },
-            adopted: adopted === 'true'
-        };
-    }, [params]);
+    useEffect(() => {
+        if (params.id) {
+            fetchPetDetail();
+        }
+    }, [params.id]);
+
+    const fetchPetDetail = async () => {
+        setLoading(true);
+        const result = await getPetDetail(params.id);
+        if (result.success) {
+            setPet(result.pet);
+        }
+        setLoading(false);
+    };
 
     useEffect(() => {
         navigation.setOptions({
@@ -78,6 +82,22 @@ export default function PetDetails() {
             console.error('Erreur lors de l\'initialisation du chat:', error);
         }
     };
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.PRIMARY} />
+            </View>
+        );
+    }
+
+    if (!pet) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={{ fontFamily: 'outfit' }}>Pet not found</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={{ flex: 1 }}>
@@ -158,5 +178,10 @@ const styles = StyleSheet.create({
     },
     adoptTextDisabled: {
         color: Colors.WHITE
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     }
 });
