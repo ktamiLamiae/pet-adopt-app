@@ -29,11 +29,11 @@ export default function AddNewPet() {
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showGenderModal, setShowGenderModal] = useState(false);
 
-    const generateRandomAvatar = () => {
-        const id = Math.floor(Math.random() * 99) + 1;
-        const gender = Math.random() > 0.5 ? 'men' : 'women';
-        return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
-    };
+    // const generateRandomAvatar = () => {
+    //     const id = Math.floor(Math.random() * 99) + 1;
+    //     const gender = Math.random() > 0.5 ? 'men' : 'women';
+    //     return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
+    // };
     useEffect(() => {
         navigation.setOptions({
             headerTitle: params?.id ? 'Edit Pet' : 'Add New Pet',
@@ -209,7 +209,7 @@ export default function AddNewPet() {
         const userData = {
             name: user?.displayName || user?.email.split('@')[0],
             email: user?.email,
-            imageUrl: user?.photoURL || generateRandomAvatar()
+            imageUrl: user?.photoURL
         };
 
         await setDoc(doc(db, 'Pets', docId), {

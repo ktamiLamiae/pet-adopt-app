@@ -24,7 +24,7 @@ export default function Category({ category }) {
     }, []);
 
     return (
-        <View style={{ marginTop: 20 }}>
+        <View style={{ marginTop: 20, }}>
             <Text style={{ fontFamily: 'outfit-medium', fontSize: 20, marginBottom: 10 }}>Category</Text>
 
             <FlatList
@@ -38,7 +38,7 @@ export default function Category({ category }) {
                             setSelectedCategory(item?.name);
                             category(item?.name)
                         }}
-                        style={styles.itemWrapper}>
+                        style={{ flex: 1, width: 95 }}>
                         <View style={[styles.container, selectedCategory === item?.name && styles.selectedCategoryContainer]}>
                             <Image
                                 source={{ uri: item?.imageUrl }}
@@ -54,10 +54,6 @@ export default function Category({ category }) {
     );
 }
 const styles = StyleSheet.create({
-    itemWrapper: {
-        alignItems: 'center',
-        marginRight: 15,
-    },
     container: {
         backgroundColor: Colors.LIGHT_PRIMARY,
         padding: 12,
@@ -65,19 +61,16 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 15,
         borderColor: Colors.PRIMARY,
-        width: 70,
-        height: 70,
-        justifyContent: 'center',
+        margin: 3,
     },
     image: {
-        width: 35,
-        height: 35
+        width: 40,
+        height: 40
     },
     categoryName: {
         fontFamily: 'outfit',
         textAlign: 'center',
         marginTop: 5,
-        fontSize: 12,
     },
     selectedCategoryContainer: {
         backgroundColor: Colors.SECONDARY,

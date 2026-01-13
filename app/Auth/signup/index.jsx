@@ -119,7 +119,7 @@ export default function Signup() {
                     )}
                 </Pressable>
 
-                <View style={styles.dividerContainer}>
+                {/* <View style={styles.dividerContainer}>
                     <View style={styles.divider} />
                     <Text style={styles.dividerText}>Or continue with</Text>
                     <View style={styles.divider} />
@@ -134,7 +134,7 @@ export default function Signup() {
                         <Ionicons name="logo-google" size={24} color="black" />
                         <Text style={styles.socialText}>Google</Text>
                     </Pressable>
-                </View>
+                </View> */}
 
                 <Pressable
                     onPress={() => router.push('/Auth/login')}

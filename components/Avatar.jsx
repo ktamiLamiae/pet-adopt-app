@@ -1,7 +1,8 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 export default function Avatar({ user, size = 40, style }) {
-    // Fonction pour obtenir l'initiale
+    const avatar = user?.photoURL || user?.avatar || user?.imageUrl;
+
     const getInitial = () => {
         return (
             user?.displayName?.charAt(0) ||
@@ -20,14 +21,12 @@ export default function Avatar({ user, size = 40, style }) {
         ];
 
         const email = user?.email || '';
-
         if (email) {
             const hash = email.split('').reduce((acc, char) => {
                 return char.charCodeAt(0) + ((acc << 5) - acc);
             }, 0);
             return colors[Math.abs(hash) % colors.length];
         }
-
         return colors[0];
     };
 
@@ -39,19 +38,18 @@ export default function Avatar({ user, size = 40, style }) {
 
     const fontSize = size * 0.45;
 
-    // Vérifier si l'utilisateur a une photo
-    const imageUrl = user?.photoURL || user?.imageUrl || user?.avatar;
-
-    if (imageUrl) {
+    if (avatar && avatar !== 'https://via.placeholder.com/150') {
         return (
             <Image
-                source={{ uri: imageUrl }}
+                source={{ uri: avatar }}
                 style={[styles.avatar, avatarSize, style]}
+                onError={(e) => {
+                    console.log('Erreur chargement image:', e.nativeEvent.error);
+                }}
             />
         );
     }
 
-    // Si pas de photo, afficher l'initiale avec couleur
     return (
         <View
             style={[

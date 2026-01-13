@@ -101,6 +101,11 @@ export default function ChatScreen() {
             const unsubscribe = onSnapshot(q, snapshot => {
                 const messagesData = snapshot.docs.map(doc => {
                     const data = doc.data();
+
+                    // console.log(' Message de:', data.senderEmail);
+                    // console.log(' Image présente?', !!data.senderImage);
+                    // console.log(' Longueur image:', data.senderImage?.length);
+
                     return {
                         _id: doc.id,
                         text: data.text || '',
@@ -109,7 +114,9 @@ export default function ChatScreen() {
                             _id: data.senderEmail || 'unknown',
                             name: data.senderName || 'Unknown User',
                             email: data.senderEmail || 'unknown@example.com',
-                            avatar: data.senderImage || 'https://via.placeholder.com/150'
+                            avatar: data.senderImage || null,
+                            photoURL: data.senderImage || null,
+                            imageUrl: data.senderImage || null
                         }
                     };
                 });
@@ -138,8 +145,6 @@ export default function ChatScreen() {
                 createdAt: new Date().toISOString()
             });
 
-
-            // Update chat metadata and mark as unread for other user
             const otherUserEmail = chatDetails?.users?.find(u => u.email !== currentUserEmail)?.email;
             const currentUnreadBy = chatDetails?.unreadBy || [];
             const newUnreadBy = otherUserEmail && !currentUnreadBy.includes(otherUserEmail)
@@ -158,7 +163,12 @@ export default function ChatScreen() {
         }
     };
 
-    const renderAvatar = (props) => <Avatar user={props.currentMessage.user} size={36} />;
+    const renderAvatar = (props) => {
+        const messageUser = props.currentMessage?.user;
+        if (!messageUser) return null;
+
+        return <Avatar user={messageUser} size={36} />;
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
@@ -167,13 +177,15 @@ export default function ChatScreen() {
                 onSend={messages => onSend(messages)}
                 user={{
                     _id: currentUserEmail,
-                    name: user?.displayName,
+                    name: user?.displayName || user?.fullName || 'Me',
                     email: currentUserEmail,
-                    avatar: user?.photoURL || null
+                    avatar: user?.photoURL || user?.imageUrl || null,
+                    photoURL: user?.photoURL || user?.imageUrl || null
                 }}
                 renderAvatar={renderAvatar}
-                renderAvatarOnTop
-                showUserAvatar={false}
+                renderAvatarOnTop={true}
+                showUserAvatar={true}
+                showAvatarForEveryMessage={true}
                 messagesContainerStyle={styles.messagesContainer}
 
                 renderInputToolbar={(props) => (
@@ -185,8 +197,9 @@ export default function ChatScreen() {
 
                 keyboardAvoidingViewProps={{
                     behavior: Platform.OS === 'ios' ? 'padding' : 'height',
-                    keyboardVerticalOffset: Platform.OS === 'ios' ? 95 : 0
+                    keyboardVerticalOffset: Platform.OS === 'ios' ? 150 : 0
                 }}
+                bottomOffset={Platform.OS === 'ios' ? 20 : 0}
 
                 textInputProps={{
                     style: { color: Colors.BLACK },

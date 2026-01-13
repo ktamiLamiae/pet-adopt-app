@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Avatar from '../../components/Avatar';
 import { db } from '../../config/FirebaseConfig';
 import Colors from '../../constants/Colors';
 import { useAuth } from '../../context/AuthContext';
@@ -94,8 +95,9 @@ export default function Inbox() {
                     params: { id: item.docId }
                 })}
             >
-                <Image
-                    source={{ uri: otherUser.imageUrl || otherUser.photoURL || 'https://via.placeholder.com/150' }}
+                <Avatar
+                    user={otherUser}
+                    size={60}
                     style={styles.avatar}
                 />
                 <View style={styles.chatContent}>

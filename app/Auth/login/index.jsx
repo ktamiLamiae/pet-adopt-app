@@ -95,7 +95,7 @@ export default function Login() {
                     )}
                 </Pressable>
 
-                <View style={styles.dividerContainer}>
+                {/* <View style={styles.dividerContainer}>
                     <View style={styles.divider} />
                     <Text style={styles.dividerText}>Or continue with</Text>
                     <View style={styles.divider} />
@@ -110,7 +110,7 @@ export default function Login() {
                         <Ionicons name="logo-google" size={24} color="black" />
                         <Text style={styles.socialText}>Google</Text>
                     </Pressable>
-                </View>
+                </View> */}
 
                 <Pressable
                     style={styles.signupLink}
